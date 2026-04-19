@@ -1,0 +1,29 @@
+name: AI Daily Brief
+
+on:
+  schedule:
+    - cron: "0 13 * * *"  # 9am ET / 6am PT every day
+  workflow_dispatch:       # allows manual trigger from GitHub UI
+
+jobs:
+  run-brief:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run signal scout
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: python signal_scout.py
