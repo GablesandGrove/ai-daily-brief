@@ -7,6 +7,7 @@ Then drop any YouTube video or channel URL into #ai-daily-brief.
 """
 
 import json
+import logging
 import os
 import re
 from pathlib import Path
@@ -16,12 +17,17 @@ from googleapiclient.discovery import build
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
+logging.basicConfig(level=logging.DEBUG)
+
 load_dotenv()
 
 CHANNELS_FILE = Path(__file__).parent / "channels.json"
 YOUTUBE_API_KEY = os.environ["YOUTUBE_API_KEY"]
 SLACK_BOT_TOKEN = os.environ["SLACK_BOT_TOKEN"]
 SLACK_APP_TOKEN = os.environ["SLACK_APP_TOKEN"]
+
+print(f"Bot token prefix: {SLACK_BOT_TOKEN[:20]}...")
+print(f"App token prefix: {SLACK_APP_TOKEN[:20]}...")
 
 app = App(token=SLACK_BOT_TOKEN)
 
@@ -90,6 +96,11 @@ def resolve_youtube_url(url: str) -> tuple[str, str] | None:
         return get_channel_info_from_handle(youtube, handle_match.group(1))
 
     return None
+
+
+@app.message(re.compile(r".*"))
+def log_all_messages(message, logger):
+    logger.info(f"RAW MESSAGE RECEIVED: {message.get('text', '')[:100]}")
 
 
 @app.message(YOUTUBE_URL_RE)
